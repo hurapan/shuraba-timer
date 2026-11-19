@@ -1,0 +1,28 @@
+{
+  "name": "修羅場タイマー",
+  "short_name": "修羅場タイマー",
+  "description": "集中作業と日々の繰り返し業務を支える短期タイムライン＆タイマーアプリ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5e9ff",
+  "theme_color": "#f5e9ff",
+  "icons": [
+    {
+      "src": "./icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
