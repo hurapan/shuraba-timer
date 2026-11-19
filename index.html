@@ -1809,7 +1809,14 @@ dialog.out::backdrop {
         </div>
 
         <div class="pb">
-          <div id="pLabel" class="date"></div>
+          <div class="slot" style="align-items:center">
+            <div id="pLabel" class="date"></div>
+            <div id="dirSeg" class="seg" style="margin-bottom:0">
+              <button id="dDown" aria-pressed="true">カウントダウン</button>
+              <button id="dUp" aria-pressed="false">カウントアップ</button>
+            </div>
+          </div>
+          <p id="dirWarn" class="hint ghost" style="text-align:center">切り替えると動作中のタイマーはリセットされます</p>
           <div id="pTime" class="big" role="timer"></div>
           <div class="acts">
             <button id="bStart" class="btn primary">開始</button>
@@ -1841,11 +1848,6 @@ dialog.out::backdrop {
               </div>
             </div>
           </div>
-          <div id="dirSeg" class="seg" style="margin-top:12px">
-            <button id="dDown" aria-pressed="true">カウントダウン</button>
-            <button id="dUp" aria-pressed="false">カウントアップ</button>
-          </div>
-          <p id="dirWarn" class="hint ghost" style="text-align:center">切り替えると動作中のタイマーはリセットされます</p>
           <label class="rd" id="soundRow" style="margin-top:8px">
             <input id="sound" type="checkbox"> 終了音を鳴らす
           </label>
@@ -2938,6 +2940,7 @@ dialog.out::backdrop {
     $('#mPomo').setAttribute('aria-pressed', isPomo);
     $('#mTimer').setAttribute('aria-pressed', !isPomo);
 
+    $('#pLabel').classList.toggle('ghost', !isPomo);
     $('#pomoFields').classList.toggle('ghost', !isPomo);
     $('#timerFields').classList.toggle('ghost', isPomo || isUp);
     $('#dirSeg').classList.toggle('ghost', isPomo);
