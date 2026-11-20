@@ -9,7 +9,10 @@
 <link rel="manifest" href="./manifest.json">
 <!-- PWA設定：ブラウザのアドレスバー等の色（テーマカラー） -->
 <meta name="theme-color" content="#f5e9ff">
-<!-- iOSホーム画面用アイコン設定 -->
+<!-- iOSホーム画面用アイコン・Webアプリ設定 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="修羅場タイマー">
 <link rel="apple-touch-icon" sizes="192x192" href="./icon-192x192.png">
 <style>
 /* ==========================================================================
@@ -1728,6 +1731,117 @@ dialog.out::backdrop {
     transition: none !important;
   }
 }
+
+/* ==========================================================================
+   12. スマホ向けレスポンシブ調整（PCレイアウトは維持・スマホ幅のみ適用）
+   ========================================================================== */
+@media (max-width: 640px) {
+  .app {
+    margin: 8px auto;
+    padding: 0 10px;
+    gap: 10px;
+  }
+
+  .hd {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .clock {
+    font-size: clamp(28px, 8.2vw, 38px);
+  }
+
+  .tools {
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .ib {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+  }
+
+  .row {
+    padding: 6px 14px;
+    min-height: 52px;
+  }
+
+  .foot {
+    padding: 12px 14px;
+    gap: 6px;
+  }
+
+  .btn {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+
+  .form {
+    padding: 4px 14px 14px;
+  }
+
+  .tp {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* スマホ時はプルダウンを前面に出して指で選びやすくする */
+  .sel.m-pick {
+    width: auto;
+    min-width: 78px;
+    flex: 0 0 auto;
+  }
+
+  .sel.m-pick .in {
+    padding-right: 28px;
+    text-align: center;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sel.m-pick select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .sel.m-pick svg {
+    right: 8px;
+    top: 13px;
+  }
+
+  /* 締め切りカードのスマホ表示をコンパクトに */
+  .dl {
+    min-height: 0;
+  }
+
+  .dl-time {
+    min-height: 76px;
+  }
+
+  .pb {
+    padding: 16px 14px;
+  }
+
+  .pf {
+    padding: 0 14px 14px;
+  }
+
+  .two {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .two > div {
+    min-width: 120px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2359,12 +2473,15 @@ dialog.out::backdrop {
     if (edit !== null) closeShift(true);
 
     if (edit !== null) {
+      const isMobile = innerWidth <= 640;
       $('#fn').focus({ preventScroll: true });
       const li = $('#list .form-li');
       const go = () => {
-        if (li.isConnected) li.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
+        if (!isMobile && li.isConnected) li.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
       };
-      if (reduce.matches) go(); else setTimeout(go, 400);
+      if (!isMobile) {
+        if (reduce.matches) go(); else setTimeout(go, 400);
+      }
     }
   }
 
@@ -2549,9 +2666,11 @@ dialog.out::backdrop {
     f.hidden = false;
     $('#shiftBtn').setAttribute('aria-expanded', 'true');
     $('#sh').focus({ preventScroll: true });
-    setTimeout(() => {
-      if (!f.hidden) f.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
-    }, 400);
+    if (innerWidth > 640) {
+      setTimeout(() => {
+        if (!f.hidden) f.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
+      }, 400);
+    }
   }
 
   function closeShift(instant) {
@@ -3345,6 +3464,69 @@ dialog.out::backdrop {
       navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
     });
   }
+
+  // スマホ幅（<=640px）向け：数値入力欄にプルダウン選択を補助追加
+  const isMobileScreen = () => matchMedia('(max-width: 640px)').matches;
+
+  function attachMobilePicker(inputId, min, max, step, padZero, onPicked) {
+    const inp = $(inputId);
+    if (!inp || inp.dataset.mPickReady) return;
+    inp.dataset.mPickReady = '1';
+
+    const wrap = document.createElement('span');
+    wrap.className = 'sel m-pick';
+    wrap.style.width = '100%';
+
+    const sel = document.createElement('select');
+    sel.setAttribute('aria-label', inp.getAttribute('aria-label') || '数値を選ぶ');
+    sel.tabIndex = -1;
+
+    let optsHtml = '';
+    for (let v = min; v <= max; v += step) {
+      const txt = padZero ? pad(v) : String(v);
+      optsHtml += `<option value="${v}">${txt}</option>`;
+    }
+    sel.innerHTML = optsHtml;
+
+    inp.parentNode.insertBefore(wrap, inp);
+    wrap.appendChild(inp);
+    wrap.insertAdjacentHTML('beforeend', CH);
+    wrap.appendChild(sel);
+
+    const syncSelect = () => {
+      const curVal = parseInt(inp.value, 10);
+      if (!isNaN(curVal)) {
+        const match = [...sel.options].find(o => parseInt(o.value, 10) === curVal);
+        if (match) sel.selectedIndex = match.index;
+      }
+    };
+
+    sel.addEventListener('pointerdown', syncSelect, { passive: true });
+    sel.addEventListener('change', () => {
+      inp.value = padZero ? pad(+sel.value) : String(+sel.value);
+      inp.dispatchEvent(new Event('change', { bubbles: true }));
+      if (onPicked) onPicked();
+    });
+  }
+
+  function applyMobileMode() {
+    const mobile = isMobileScreen();
+    document.querySelectorAll('.sel').forEach(s => s.classList.toggle('m-pick', mobile));
+  }
+
+  if (!store.get('cfg', null) && isMobileScreen()) {
+    cfg.tShow = false;
+    cfg.dlShow = false;
+  }
+
+  attachMobilePicker('#work',  1, 180, 1, false);
+  attachMobilePicker('#rest',  1, 180, 1, false);
+  attachMobilePicker('#tmMin', 0, 120, 1, false);
+  attachMobilePicker('#tmSec', 0, 55,  5, true);
+  attachMobilePicker('#aStop', 0, 300, 10, false);
+
+  applyMobileMode();
+  addEventListener('resize', applyMobileMode);
 
   // アプリ起動時の初期描画
   applyTheme();
