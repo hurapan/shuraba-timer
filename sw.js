@@ -1,5 +1,5 @@
 // 修羅場タイマー Service Worker（GitHub Pages サブパス対応）
-const CACHE_NAME = 'shuraba-timer-v1.03';
+const CACHE_NAME = 'shuraba-timer-v1.04';
 const ASSETS = [
   './',
   './index.html',
