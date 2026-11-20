@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>修羅場タイマーv1.03</title>
+<title>修羅場タイマーv1.04</title>
 
 <!-- PWA設定：Web App Manifest の読み込み -->
 <link rel="manifest" href="./manifest.json">
@@ -1750,6 +1750,7 @@ dialog.out::backdrop {
    12. スマホ向けレスポンシブ調整（PCレイアウトは維持・スマホ幅のみ適用）
    ========================================================================== */
 @media (max-width: 640px) {
+  html,
   body {
     background-attachment: scroll;
     overflow-anchor: none;
@@ -1757,8 +1758,17 @@ dialog.out::backdrop {
 
   .app {
     margin: 8px auto;
-    padding: 0 10px;
+    padding: 0 10px max(28px, env(safe-area-inset-bottom));
     gap: 10px;
+  }
+
+  #timerPane .pb {
+    container-type: normal;
+    transition: none;
+  }
+
+  #timerPane .big {
+    font-size: clamp(44px, 14vw, 64px);
   }
 
   .hd {
@@ -3051,25 +3061,32 @@ dialog.out::backdrop {
   function drawPanel() {
     const isPomo = cfg.mode === 'pomo';
     const isUp   = !isPomo && cfg.dir === 'up';
-    $('#pTime').textContent = fmt(isPomo ? pm.left : isUp ? tr.up : tr.left, isUp);
+    const pTimeEl = $('#pTime');
+    const nextTime = fmt(isPomo ? pm.left : isUp ? tr.up : tr.left, isUp);
+    if (pTimeEl.textContent !== nextTime) pTimeEl.textContent = nextTime;
     drawBar();
 
-    $('#pLabel').textContent = isPomo
+    const pLabelEl = $('#pLabel');
+    const nextLabel = isPomo
       ? (pm.phase === 'work'
           ? (pm.run ? '作業中（' + pm.n + 'セット目）' : '作業中（停止）')
           : (pm.run ? '休憩中' : '休憩中（停止）'))
       : (isUp ? 'カウントアップ' : 'カウントダウン');
+    if (pLabelEl.textContent !== nextLabel) pLabelEl.textContent = nextLabel;
 
     const pb = document.querySelector('.pb');
-    if (isPomo) {
-      pb.dataset.tone = pm.run ? (pm.phase === 'work' ? 'work' : 'rest') : 'pause';
-    } else {
+    const nextTone = isPomo ? (pm.run ? (pm.phase === 'work' ? 'work' : 'rest') : 'pause') : '';
+    if (nextTone) {
+      if (pb.dataset.tone !== nextTone) pb.dataset.tone = nextTone;
+    } else if ('tone' in pb.dataset) {
       delete pb.dataset.tone;
     }
 
     $('#dirWarn').classList.toggle('ghost', isPomo || !tr.run);
-    $('#bStart').disabled = cur().run;
-    $('#bPause').disabled = !cur().run;
+    const disStart = cur().run;
+    const disPause = !cur().run;
+    if ($('#bStart').disabled !== disStart) $('#bStart').disabled = disStart;
+    if ($('#bPause').disabled !== disPause) $('#bPause').disabled = disPause;
   }
 
   function drawMode() {
