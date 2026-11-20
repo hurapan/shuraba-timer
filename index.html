@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>修羅場タイマーv1.02</title>
+<title>修羅場タイマーv1.03</title>
 
 <!-- PWA設定：Web App Manifest の読み込み -->
 <link rel="manifest" href="./manifest.json">
@@ -1750,6 +1750,11 @@ dialog.out::backdrop {
    12. スマホ向けレスポンシブ調整（PCレイアウトは維持・スマホ幅のみ適用）
    ========================================================================== */
 @media (max-width: 640px) {
+  body {
+    background-attachment: scroll;
+    overflow-anchor: none;
+  }
+
   .app {
     margin: 8px auto;
     padding: 0 10px;
